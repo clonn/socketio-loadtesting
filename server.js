@@ -1,22 +1,35 @@
 // Setup basic express server
 const express = require('express');
 const app = express();
+const redis = require('redis')
+const session = require('express-session');
+let RedisStore = require('connect-redis')(session);
+
 const path = require('path');
 const server = require('http').createServer(app);
 const io = require('socket.io')(server);
-const redisAdapter = require('socket.io-redis');
 const REDIS_HOST = process.env.REDIS_HOST || 'localhost';
 const REDIS_PORT = process.env.REDIS_PORT || 6379;
 const port = process.env.PORT || 8080;
-io.adapter(redisAdapter({ host: REDIS_HOST, port: REDIS_PORT }));
+let redisClient = redis.createClient({
+  host: REDIS_HOST, port: REDIS_PORT
+})
 
+const sessionMiddleware = session({
+  store: new RedisStore({ client: redisClient }),
+  secret: 'keyboard cat',
+  resave: false,
+});
 server.listen(port, () => {
   console.log('Server listening at port %d', port);
 });
 
+app.use(sessionMiddleware);
 // load static front end site
 app.use(express.static(path.join(__dirname, 'public')));
-
+io.use((socket, next) => {
+  sessionMiddleware(socket.request, {}, next);
+});
 // socket.io-server
 
 var numUsers = 0;
