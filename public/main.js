@@ -1,3 +1,5 @@
+// https://medium.com/@kyle_martin/load-testing-socket-io-web-applications-and-infrastructure-3e96011898e0
+
 $(function() {
     var FADE_TIME = 150; // ms
     var TYPING_TIMER_LENGTH = 400; // ms
@@ -29,8 +31,10 @@ $(function() {
       var message = '';
       if (data.numUsers === 1) {
         message += "there's 1 participant";
+        $("#number").html(1);
       } else {
         message += "there are " + data.numUsers + " participants";
+        $("#number").html(data.numUsers);
       }
       log(message);
     }

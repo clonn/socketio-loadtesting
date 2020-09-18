@@ -4,7 +4,11 @@ const app = express();
 const path = require('path');
 const server = require('http').createServer(app);
 const io = require('socket.io')(server);
+const redisAdapter = require('socket.io-redis');
+const REDIS_HOST = process.env.REDIS_HOST || 'localhost';
+const REDIS_PORT = process.env.REDIS_PORT || 6379;
 const port = process.env.PORT || 8080;
+io.adapter(redisAdapter({ host: REDIS_HOST, port: REDIS_PORT }));
 
 server.listen(port, () => {
   console.log('Server listening at port %d', port);

@@ -6,11 +6,14 @@
   "author": "Kyle Martin",
   "license": "MIT",
   "dependencies": {
+    "artillery": "^1.6.1",
     "express": "4.13.4",
-    "socket.io": "^2.2.0"
+    "socket.io": "^2.2.0",
+    "socket.io-redis": "^5.4.0"
   },
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "artillery run load-test/advanced-test.yaml"
   },
   "devDependencies": {
     "faker": "^4.1.0"
