@@ -1,40 +1,27 @@
 // Setup basic express server
 const express = require('express');
 const app = express();
-const redis = require('redis')
-const session = require('express-session');
-let RedisStore = require('connect-redis')(session);
-
 const path = require('path');
 const server = require('http').createServer(app);
 const io = require('socket.io')(server);
+const redis = require('socket.io-redis');
 const REDIS_HOST = process.env.REDIS_HOST || 'localhost';
 const REDIS_PORT = process.env.REDIS_PORT || 6379;
 const port = process.env.PORT || 8080;
-let redisClient = redis.createClient({
-  host: REDIS_HOST, port: REDIS_PORT
-})
 
-const sessionMiddleware = session({
-  store: new RedisStore({ client: redisClient }),
-  secret: 'keyboard cat',
-  resave: false,
-});
+io.adapter(redis({ host: REDIS_HOST, port: REDIS_PORT }));
+
+
 server.listen(port, () => {
   console.log('Server listening at port %d', port);
 });
-
-app.use(sessionMiddleware);
 // load static front end site
 app.use(express.static(path.join(__dirname, 'public')));
-io.use((socket, next) => {
-  sessionMiddleware(socket.request, {}, next);
-});
+
 // socket.io-server
-
 var numUsers = 0;
-
 io.on('connection', (socket) => {
+  numUsers = socket.client.conn.server.clientsCount;
   var addedUser = false;
 
   // when the client emits 'new message', this listens and executes
@@ -52,7 +39,7 @@ io.on('connection', (socket) => {
 
     // we store the username in the socket session for this client
     socket.username = username;
-    ++numUsers;
+    numUsers = socket.client.conn.server.clientsCount;
     addedUser = true;
     socket.emit('login', {
       numUsers: numUsers
@@ -81,7 +68,7 @@ io.on('connection', (socket) => {
   // when the user disconnects.. perform this
   socket.on('disconnect', () => {
     if (addedUser) {
-      --numUsers;
+      numUsers = socket.client.conn.server.clientsCount;
 
       // echo globally that this client has left
       socket.broadcast.emit('user left', {
