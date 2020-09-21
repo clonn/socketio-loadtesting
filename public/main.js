@@ -124,6 +124,10 @@ $(function() {
     //   all other messages (default = false)
     const addMessageElement = (el, options) => {
       var $el = $(el);
+      
+      if ($('ul.messages li').length > 200) {
+        $('ul.messages').html('');
+      }
   
       // Setup default options
       if (!options) {
